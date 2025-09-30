@@ -1,0 +1,33 @@
+project_name: Karuá CRM
+description: >
+  Backend do sistema Karuá CRM — um sistema de gestão de hotéis e pousadas, com
+  foco em reservas, precificação de quartos e gerenciamento de clientes. Este
+  projeto segue um roadmap e padrões documentados em /docs.
+
+docs:
+  - path: docs/development_plan.md
+    purpose: Roadmap detalhado de desenvolvimento e lista de tarefas por etapa.
+  - path: docs/db_schema.md
+    purpose: Esquema do banco de dados e definições de entidades.
+  - path: docs/architecture.md
+    purpose: Padrões de arquitetura e decisões de design do projeto.
+  - path: docs/glossary.md
+    purpose: Convenções de nomenclatura e boas práticas.
+
+rules:
+  - Sempre siga a ordem de desenvolvimento descrita no `development_plan.md`.
+  - Antes de gerar código, verifique se a entidade, relacionamento ou endpoint está descrito em `db_schema.md`.
+  - Use o glossário para nomes de tabelas, colunas e enums. Nunca use camelCase no banco.
+  - Sempre escreva código com foco em escalabilidade e multi-tenant (isolado por `host_id`).
+  - Todos os endpoints devem ter validação com `class-validator` e documentação no Swagger.
+  - Prefira `UUID` para PKs expostas e siga os tipos e constraints especificados em `db_schema.md`.
+
+tasks:
+  - name: Setup
+    description: Configure Docker, database, Redis, Temporal e Swagger conforme roadmap.
+  - name: Entities
+    description: Crie as entidades e migrations conforme definido em `db_schema.md`.
+  - name: Features
+    description: "Implemente as funcionalidades seguindo a ordem: Auth → Users → Customers → Rooms → Reservations."
+  - name: Tests
+    description: Crie testes unitários e de integração para cada módulo.
