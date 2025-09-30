@@ -11,13 +11,13 @@ O foco inicial será no **backend** (NestJS + TypeORM + PostgreSQL + Redis + Tem
 - [x] Inicializar repositório Git e estrutura base do projeto (`karua-crm-backend`)
 - [x] Configurar ambiente com Docker e Docker Compose
 - [x] Criar container do PostgreSQL e Redis
-- [ ] Configurar conexão com banco via TypeORM
-- [ ] Criar arquivos `.env` e `.env.example`
-- [ ] Configurar ESLint, Prettier e Husky para lint e pre-commit hooks
+- [x] Configurar conexão com banco via TypeORM
+- [x] Criar arquivos `.env` e `.env.example`
+- [x] Configurar ESLint, Prettier e Husky para lint e pre-commit hooks
 
 ### ⚙️ Core Framework Setup
-- [ ] Criar aplicação base com NestJS
-- [ ] Configurar `ConfigModule` para variáveis de ambiente
+- [x] Criar aplicação base com NestJS
+- [x] Configurar `ConfigModule` para variáveis de ambiente
 - [ ] Configurar `Logger` global
 - [ ] Configurar interceptors e filters globais (ex.: erros, responses padronizados)
 - [ ] Adicionar Swagger (OpenAPI) para documentação automática
