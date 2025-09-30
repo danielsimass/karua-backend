@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: karua-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-karua_crm}
+      POSTGRES_USER: ${DB_USERNAME:-karua_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-karua_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=pt_BR.UTF-8 --lc-ctype=pt_BR.UTF-8"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - ${POSTGRES_VOLUME_NAME:-karua_postgres_data}:/var/lib/postgresql/data
+    networks:
+      - karua-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-karua_user} -d ${DB_DATABASE:-karua_crm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: karua-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ${REDIS_VOLUME_NAME:-karua_redis_data}:/data
+    networks:
+      - karua-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: karua-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - karua-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  karua_postgres_data:
+    driver: local
+  karua_redis_data:
+    driver: local
+
+networks:
+  karua-network:
+    driver: bridge
