@@ -1,29 +1,21 @@
-# Dockerfile para desenvolvimento com hot reload
 FROM node:22-alpine
 
-# Instalar dependências do sistema
 RUN apk add --no-cache \
     dumb-init \
     && addgroup -g 1001 -S nodejs \
     && adduser -S nestjs -u 1001
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de dependências
 COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
-# Instalar pnpm globalmente
 RUN npm install -g pnpm
 
-# Instalar todas as dependências (dev + prod)
 RUN pnpm install
 
-# Copiar código fonte
 COPY . .
-# Expor porta
+
 EXPOSE 3000
 
-# Comando para iniciar a aplicação em modo desenvolvimento com hot reload
 CMD ["pnpm", "run", "start:dev"]
