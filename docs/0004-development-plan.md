@@ -13,7 +13,7 @@ O foco inicial será no **backend** (NestJS + TypeORM + PostgreSQL + Redis + Tem
 - [x] Criar container do PostgreSQL e Redis
 - [x] Configurar conexão com banco via TypeORM
 - [x] Criar arquivos `.env` e `.env.example`
-- [x] Configurar ESLint, Prettier e Husky para lint e pre-commit hooks
+- [x] Configurar ESLint, Prettier e para lint e pre-commit hooks
 
 ### ⚙️ Core Framework Setup
 - [x] Criar aplicação base com NestJS
