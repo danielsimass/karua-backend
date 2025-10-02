@@ -18,9 +18,9 @@ O foco inicial será no **backend** (NestJS + TypeORM + PostgreSQL + Redis + Tem
 ### ⚙️ Core Framework Setup
 - [x] Criar aplicação base com NestJS
 - [x] Configurar `ConfigModule` para variáveis de ambiente
-- [ ] Configurar `Logger` global
+- [x] Configurar `Logger` global
 - [ ] Configurar interceptors e filters globais (ex.: erros, responses padronizados)
-- [ ] Adicionar Swagger (OpenAPI) para documentação automática
+- [x] Adicionar Swagger (OpenAPI) para documentação automática
 - [ ] Configurar validações com `class-validator` e `class-transformer`
 - [ ] Criar estrutura de módulos base (`core`, `shared`, etc.)
 
