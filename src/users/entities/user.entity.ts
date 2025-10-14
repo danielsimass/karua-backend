@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -16,12 +17,14 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index({ unique: true })
   @Column({ type: 'varchar', length: 255, nullable: false })
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
 
+  @Index({ unique: true })
   @Column({ type: 'varchar', length: 100, nullable: false })
   username: string;
 

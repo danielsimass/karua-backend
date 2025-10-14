@@ -11,12 +11,4 @@ export class LoginDto {
   @IsNotEmpty({ message: 'Senha é obrigatória' })
   @IsString({ message: 'Senha deve ser uma string' })
   password: string;
-
-  @ApiProperty({
-    example: 'uuid-host-id',
-    description: 'ID do host (hotel/pousada)',
-    required: false,
-  })
-  @IsString({ message: 'Host ID deve ser uma string' })
-  hostId?: string;
 }

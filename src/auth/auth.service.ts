@@ -15,12 +15,9 @@ export class AuthService {
   ) {}
 
   async validateUser(loginDto: LoginDto): Promise<User> {
-    let user: User | null = null;
-    if (loginDto.hostId) {
-      user = await this.usersService.findByUsername(loginDto.username, loginDto.hostId);
-    }
+    let user = await this.usersService.findByEmail(loginDto.username);
     if (!user) {
-      user = await this.usersService.findByEmail(loginDto.username);
+      user = await this.usersService.findByUsername(loginDto.username);
     }
     if (!user) {
       throw new UnauthorizedException('Credenciais inválidas');
@@ -29,7 +26,6 @@ export class AuthService {
       throw new UnauthorizedException('Usuário inativo');
     }
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
     }

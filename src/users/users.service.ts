@@ -20,7 +20,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    // Verify if email already exists for this host
     const existingUserByEmail = await this.userRepository.findOne({
       where: {
         email: createUserDto.email,
@@ -32,7 +31,6 @@ export class UsersService {
       throw new ConflictException('Email já cadastrado para este estabelecimento');
     }
 
-    // Verify if username already exists for this host
     const existingUserByUsername = await this.userRepository.findOne({
       where: {
         username: createUserDto.username,
@@ -43,11 +41,7 @@ export class UsersService {
     if (existingUserByUsername) {
       throw new ConflictException('Username já cadastrado para este estabelecimento');
     }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-    // Create user
     const user = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
@@ -81,9 +75,9 @@ export class UsersService {
     });
   }
 
-  async findByUsername(username: string, hostId: string): Promise<User | null> {
+  async findByUsername(username: string): Promise<User | null> {
     return this.userRepository.findOne({
-      where: { username, hostId },
+      where: { username },
     });
   }
 

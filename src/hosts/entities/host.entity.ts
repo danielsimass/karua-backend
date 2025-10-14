@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { LegalRepresentative } from './legal-representative.entity';
 
@@ -19,6 +20,7 @@ export class Host {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Index({ unique: true })
   @Column({ type: 'varchar', length: 18, nullable: true })
   cnpj: string;
 
@@ -49,6 +51,8 @@ export class Host {
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 
-  @OneToMany(() => LegalRepresentative, (legalRepresentative) => legalRepresentative.host)
+  @OneToMany(() => LegalRepresentative, (legalRepresentative) => legalRepresentative.host, {
+    cascade: true,
+  })
   legalRepresentatives: LegalRepresentative[];
 }
