@@ -18,4 +18,10 @@ export class AuthResponseDto {
 
   @ApiProperty({ example: 'Hotel Exemplo', description: 'Nome do host' })
   hostName: string;
+
+  @ApiProperty({ example: false, description: 'Indica se é o primeiro login do usuário' })
+  isFirstLogin?: boolean;
+
+  @ApiProperty({ example: false, description: 'Indica se o usuário precisa definir senha' })
+  requiresPasswordSetup?: boolean;
 }

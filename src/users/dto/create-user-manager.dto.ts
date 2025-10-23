@@ -1,16 +1,8 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { RoleType } from '../enums/role.enum';
 
-export class CreateUserDto {
+export class CreateUserManagerDto {
   @ApiProperty({ example: 'João Silva', description: 'Nome completo do usuário' })
   @IsNotEmpty({ message: 'Nome é obrigatório' })
   @IsString({ message: 'Nome deve ser uma string' })
@@ -46,9 +38,5 @@ export class CreateUserDto {
     message: 'Role deve ser um valor válido: admin, manager, receptionist, staff',
   })
   role: RoleType;
-
-  @ApiProperty({ example: 'uuid-host-id', description: 'ID do host (hotel/pousada)' })
-  @IsNotEmpty({ message: 'Host é obrigatório' })
-  @IsUUID('4', { message: 'Host ID deve ser um UUID válido' })
-  hostId: string;
 }
+

@@ -10,118 +10,110 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserManagerDto } from './dto/create-user-manager.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 import { RoleType } from './enums/role.enum';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { HostId } from '../auth/decorators/host-id.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
+@ApiBearerAuth()
 @Controller('users')
+@Roles(RoleType.MANAGER, RoleType.ADMIN)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar um novo usuário' })
+  @ApiOperation({ summary: 'Criar um novo usuário no próprio host (Manager)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso', type: User })
   @ApiResponse({ status: 409, description: 'Email ou username já cadastrado' })
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createUserDto);
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  create(
+    @Body() createUserManagerDto: CreateUserManagerDto,
+    @HostId() hostId: string
+  ): Promise<User> {
+    return this.usersService.create({
+      ...createUserManagerDto,
+      hostId,
+    });
   }
 
-  @Get(':hostId')
-  @ApiOperation({ summary: 'Listar todos os usuários de um host' })
+  @Get()
+  @ApiOperation({ summary: 'Listar todos os usuários do próprio host (Manager)' })
   @ApiResponse({ status: 200, description: 'Lista de usuários', type: [User] })
-  findAll(@Param('hostId', ParseUUIDPipe) hostId: string): Promise<User[]> {
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  findAll(@HostId() hostId: string): Promise<User[]> {
     return this.usersService.findAll(hostId);
   }
 
-  @Get(':hostId/:id')
-  @ApiOperation({ summary: 'Buscar um usuário por ID' })
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar um usuário por ID do próprio host (Manager)' })
   @ApiResponse({ status: 200, description: 'Usuário encontrado', type: User })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string
-  ): Promise<User> {
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  findOne(@Param('id', ParseUUIDPipe) id: string, @HostId() hostId: string): Promise<User> {
     return this.usersService.findOne(id, hostId);
   }
 
-  @Patch(':hostId/:id')
-  @ApiOperation({ summary: 'Atualizar um usuário' })
+  @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar um usuário do próprio host (Manager)' })
   @ApiResponse({ status: 200, description: 'Usuário atualizado', type: User })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   @ApiResponse({ status: 409, description: 'Email ou username já cadastrado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string,
+    @HostId() hostId: string,
     @Body() updateUserDto: UpdateUserDto
   ): Promise<User> {
     return this.usersService.update(id, hostId, updateUserDto);
   }
 
-  @Patch(':hostId/:id/change-password')
+  @Patch(':id/change-password')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Alterar senha do usuário' })
+  @ApiOperation({ summary: 'Alterar senha do usuário do próprio host (Manager)' })
   @ApiResponse({ status: 204, description: 'Senha alterada com sucesso' })
   @ApiResponse({ status: 401, description: 'Senha atual incorreta' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
   changePassword(
     @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string,
+    @HostId() hostId: string,
     @Body() changePasswordDto: ChangePasswordDto
   ): Promise<void> {
     return this.usersService.changePassword(id, hostId, changePasswordDto);
   }
 
-  @Patch(':hostId/:id/deactivate')
-  @ApiOperation({ summary: 'Desativar um usuário' })
+  @Patch(':id/deactivate')
+  @ApiOperation({ summary: 'Desativar um usuário do próprio host (Manager)' })
   @ApiResponse({ status: 200, description: 'Usuário desativado', type: User })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  deactivate(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string
-  ): Promise<User> {
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  deactivate(@Param('id', ParseUUIDPipe) id: string, @HostId() hostId: string): Promise<User> {
     return this.usersService.deactivate(id, hostId);
   }
 
-  @Patch(':hostId/:id/activate')
-  @ApiOperation({ summary: 'Ativar um usuário' })
+  @Patch(':id/activate')
+  @ApiOperation({ summary: 'Ativar um usuário do próprio host (Manager)' })
   @ApiResponse({ status: 200, description: 'Usuário ativado', type: User })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  activate(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string
-  ): Promise<User> {
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  activate(@Param('id', ParseUUIDPipe) id: string, @HostId() hostId: string): Promise<User> {
     return this.usersService.activate(id, hostId);
   }
 
-  @Delete(':hostId/:id')
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Remover um usuário' })
+  @ApiOperation({ summary: 'Remover um usuário do próprio host (Manager)' })
   @ApiResponse({ status: 204, description: 'Usuário removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
-  remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Param('hostId', ParseUUIDPipe) hostId: string
-  ): Promise<void> {
+  @ApiResponse({ status: 403, description: 'Acesso negado - apenas para managers e admins' })
+  remove(@Param('id', ParseUUIDPipe) id: string, @HostId() hostId: string): Promise<void> {
     return this.usersService.remove(id, hostId);
-  }
-
-  @Get('roles')
-  @ApiOperation({ summary: 'Listar todos os roles disponíveis' })
-  @ApiResponse({ status: 200, description: 'Lista de roles' })
-  findAllRoles(): { role: string; description: string }[] {
-    return [
-      { role: RoleType.ADMIN, description: 'Administrador do sistema com acesso total' },
-      { role: RoleType.MANAGER, description: 'Gerente com acesso a gestão e relatórios' },
-      {
-        role: RoleType.RECEPTIONIST,
-        description: 'Recepcionista com acesso a reservas e check-in/out',
-      },
-      { role: RoleType.STAFF, description: 'Funcionário com acesso básico' },
-    ];
   }
 }

@@ -4,63 +4,58 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UsersRepository } from './repositories';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>
-  ) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUserByEmail = await this.userRepository.findOne({
-      where: {
-        email: createUserDto.email,
-        hostId: createUserDto.hostId,
-      },
-    });
+    const existingUserByEmail = await this.usersRepository.findByEmailAndHostId(
+      createUserDto.email,
+      createUserDto.hostId
+    );
 
     if (existingUserByEmail) {
       throw new ConflictException('Email já cadastrado para este estabelecimento');
     }
 
-    const existingUserByUsername = await this.userRepository.findOne({
-      where: {
-        username: createUserDto.username,
-        hostId: createUserDto.hostId,
-      },
-    });
+    const existingUserByUsername = await this.usersRepository.findByUsernameAndHostId(
+      createUserDto.username,
+      createUserDto.hostId
+    );
 
     if (existingUserByUsername) {
       throw new ConflictException('Username já cadastrado para este estabelecimento');
     }
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    const user = this.userRepository.create({
-      ...createUserDto,
+
+    const hashedPassword = createUserDto.password
+      ? await bcrypt.hash(createUserDto.password, 10)
+      : undefined;
+
+    const user = this.usersRepository.create({
+      name: createUserDto.name,
+      email: createUserDto.email,
+      username: createUserDto.username,
       password: hashedPassword,
+      role: createUserDto.role,
+      hostId: createUserDto.hostId,
     });
 
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   async findAll(hostId: string): Promise<User[]> {
-    return this.userRepository.find({
-      where: { hostId },
-      order: { createdAt: 'DESC' },
-    });
+    return this.usersRepository.findAllByHostId(hostId);
   }
 
   async findOne(id: string, hostId: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id, hostId },
-    });
+    const user = await this.usersRepository.findByIdAndHostId(id, hostId);
 
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
@@ -70,51 +65,40 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({
-      where: { email },
-    });
+    return this.usersRepository.findByEmail(email);
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    return this.userRepository.findOne({
-      where: { username },
-    });
+    return this.usersRepository.findByUsername(username);
   }
 
   async update(id: string, hostId: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id, hostId);
 
-    // Verify if email is being changed and if it already exists
     if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingUser = await this.userRepository.findOne({
-        where: {
-          email: updateUserDto.email,
-          hostId,
-        },
-      });
+      const existingUser = await this.usersRepository.findByEmailAndHostId(
+        updateUserDto.email,
+        hostId
+      );
 
       if (existingUser) {
         throw new ConflictException('Email já cadastrado para este estabelecimento');
       }
     }
 
-    // Verify if username is being changed and if it already exists
     if (updateUserDto.username && updateUserDto.username !== user.username) {
-      const existingUser = await this.userRepository.findOne({
-        where: {
-          username: updateUserDto.username,
-          hostId,
-        },
-      });
+      const existingUser = await this.usersRepository.findByUsernameAndHostId(
+        updateUserDto.username,
+        hostId
+      );
 
       if (existingUser) {
         throw new ConflictException('Username já cadastrado para este estabelecimento');
       }
     }
 
-    // Update user
     Object.assign(user, updateUserDto);
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   async changePassword(
@@ -124,35 +108,42 @@ export class UsersService {
   ): Promise<void> {
     const user = await this.findOne(userId, hostId);
 
-    // Verify current password
-    const isPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+    if (user.password) {
+      const isPasswordValid = await bcrypt.compare(
+        changePasswordDto.currentPassword,
+        user.password
+      );
 
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Senha atual incorreta');
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Senha atual incorreta');
+      }
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
 
-    // Update password
     user.password = hashedPassword;
-    await this.userRepository.save(user);
+    user.isFirstLogin = false;
+    await this.usersRepository.save(user);
+  }
+
+  async updateUserPassword(user: User): Promise<User> {
+    return this.usersRepository.save(user);
   }
 
   async deactivate(id: string, hostId: string): Promise<User> {
     const user = await this.findOne(id, hostId);
     user.isActive = false;
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   async activate(id: string, hostId: string): Promise<User> {
     const user = await this.findOne(id, hostId);
     user.isActive = true;
-    return this.userRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
   async remove(id: string, hostId: string): Promise<void> {
     const user = await this.findOne(id, hostId);
-    await this.userRepository.remove(user);
+    await this.usersRepository.remove(user);
   }
 }

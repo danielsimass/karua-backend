@@ -4,6 +4,7 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { SetFirstPasswordDto } from './dto/set-first-password.dto';
 import { Public } from './decorators/public.decorator';
 
 @ApiTags('auth')
@@ -72,5 +73,57 @@ export class AuthController {
       maxAge: 60 * 60 * 1000, // 1 hour
     });
     return { message: 'Token renovado com sucesso' };
+  }
+
+  @Public()
+  @Post('check-first-login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verifica se o usuário precisa definir senha no primeiro acesso' })
+  @ApiResponse({
+    status: 200,
+    description: 'Status de primeiro login verificado',
+    schema: {
+      type: 'object',
+      properties: {
+        requiresPasswordSetup: { type: 'boolean', example: true },
+        userId: { type: 'string', example: 'uuid-user-id' },
+        name: { type: 'string', example: 'João Silva' },
+        email: { type: 'string', example: 'joao.silva@example.com' },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Usuário não encontrado ou inativo' })
+  async checkFirstLogin(@Body() body: { username: string; securityCode: string }): Promise<{
+    requiresPasswordSetup: boolean;
+  }> {
+    return this.authService.checkFirstLogin(body.username);
+  }
+
+  @Public()
+  @Post('set-first-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Define a senha no primeiro acesso e realiza login automático' })
+  @ApiResponse({
+    status: 200,
+    description: 'Senha definida e login realizado com sucesso',
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Usuário não encontrado, inativo ou já possui senha' })
+  async setFirstPassword(
+    @Body() setFirstPasswordDto: SetFirstPasswordDto,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<AuthResponseDto> {
+    const { accessToken, user } = await this.authService.setFirstPassword(
+      setFirstPasswordDto.username,
+      setFirstPasswordDto.password,
+      setFirstPasswordDto.secureCode
+    );
+    response.cookie('access_token', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000,
+    });
+    return user;
   }
 }
