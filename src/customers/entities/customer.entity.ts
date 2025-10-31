@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { CustomerDocument } from './customer-document.entity';
 import { CustomerContact } from './customer-contact.entity';
@@ -40,6 +41,7 @@ export class Customer {
   @Column({ type: 'uuid', nullable: true })
   nationalityId: string;
 
+  @Index('idx_customers_host_id')
   @Column({ type: 'uuid' })
   hostId: string;
 
@@ -60,9 +62,13 @@ export class Customer {
   @JoinColumn({ name: 'host_id' })
   host: Host;
 
-  @OneToMany(() => CustomerDocument, (customerDocument) => customerDocument.customer, { cascade: true })
+  @OneToMany(() => CustomerDocument, (customerDocument) => customerDocument.customer, {
+    cascade: true,
+  })
   documents: CustomerDocument[];
 
-  @OneToMany(() => CustomerContact, (customerContact) => customerContact.customer, { cascade: true })
+  @OneToMany(() => CustomerContact, (customerContact) => customerContact.customer, {
+    cascade: true,
+  })
   contacts: CustomerContact[];
 }

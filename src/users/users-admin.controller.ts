@@ -19,7 +19,7 @@ import { User } from './entities/user.entity';
 import { RoleType } from './enums/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 
-@ApiTags('users-admin')
+@ApiTags('usuarios-admin')
 @ApiBearerAuth()
 @Controller('users-admin')
 @Roles(RoleType.ADMIN)
@@ -136,4 +136,3 @@ export class UsersAdminController {
     ];
   }
 }
-

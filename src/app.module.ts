@@ -10,6 +10,7 @@ import { CustomersModule } from './customers/customers.module';
 import { HostsModule } from './hosts/hosts.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { AccommodationsModule } from './accommodations/accommodations.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -27,6 +28,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     HostsModule,
     UsersModule,
     AuthModule,
+    AccommodationsModule,
   ],
   controllers: [AppController],
   providers: [

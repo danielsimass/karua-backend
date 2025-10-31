@@ -19,9 +19,8 @@ import { User } from './entities/user.entity';
 import { RoleType } from './enums/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { HostId } from '../auth/decorators/host-id.decorator';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
-@ApiTags('users')
+@ApiTags('usuarios')
 @ApiBearerAuth()
 @Controller('users')
 @Roles(RoleType.MANAGER, RoleType.ADMIN)

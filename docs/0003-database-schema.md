@@ -13,6 +13,7 @@ Este documento define a modelagem completa do banco de dados do Karuá CRM, segu
 ## Entidades Principais
 
 ### 1. customers
+
 Tabela principal para cadastro de clientes/hóspedes.
 
 ```sql
@@ -31,6 +32,7 @@ CREATE TABLE customers (
 ```
 
 ### 2. customer_documents
+
 Documentos dos clientes (CPF, RG, Passaporte, etc.).
 
 ```sql
@@ -47,6 +49,7 @@ CREATE TABLE customer_documents (
 ```
 
 ### 3. customer_contacts
+
 Contatos dos clientes (telefone, celular, etc.).
 
 ```sql
@@ -62,6 +65,7 @@ CREATE TABLE customer_contacts (
 ```
 
 ### 4. nationalities
+
 Países/nacionalidades.
 
 ```sql
@@ -74,6 +78,7 @@ CREATE TABLE nationalities (
 ```
 
 ### 5. users
+
 Usuários do sistema (funcionários, administradores).
 
 ```sql
@@ -92,6 +97,7 @@ CREATE TABLE users (
 ```
 
 ### 6. roles
+
 Funções/cargos dos usuários.
 
 ```sql
@@ -105,6 +111,7 @@ CREATE TABLE roles (
 ```
 
 ### 7. hosts
+
 Estabelecimentos hoteleiros (hotéis, pousadas).
 
 ```sql
@@ -126,6 +133,7 @@ CREATE TABLE hosts (
 ```
 
 ### 8. legal_representatives
+
 Representantes legais dos estabelecimentos.
 
 ```sql
@@ -142,6 +150,7 @@ CREATE TABLE legal_representatives (
 ```
 
 ### 9. accommodation_types
+
 Tipos de acomodação (quarto simples, suíte, etc.).
 
 ```sql
@@ -151,6 +160,8 @@ CREATE TABLE accommodation_types (
     capacity INTEGER NOT NULL,
     rooms INTEGER NOT NULL,
     bathrooms INTEGER NOT NULL,
+    min_occupants INTEGER NOT NULL DEFAULT 1,
+    max_occupants INTEGER NOT NULL,
     host_id UUID REFERENCES hosts(id) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -159,6 +170,7 @@ CREATE TABLE accommodation_types (
 ```
 
 ### 10. accommodations
+
 Acomodações específicas (quarto 101, suíte 201, etc.).
 
 ```sql
@@ -175,6 +187,7 @@ CREATE TABLE accommodations (
 ```
 
 ### 11. accommodation_pricing_schedules
+
 Cronograma de preços por tipo de acomodação.
 
 ```sql
@@ -190,6 +203,7 @@ CREATE TABLE accommodation_pricing_schedules (
 ```
 
 ### 12. bookings
+
 Reservas de acomodações.
 
 ```sql
@@ -213,6 +227,7 @@ CREATE TABLE bookings (
 ```
 
 ### 13. check_ins
+
 Registro de check-ins.
 
 ```sql
@@ -224,6 +239,7 @@ CREATE TABLE check_ins (
 ```
 
 ### 14. check_outs
+
 Registro de check-outs.
 
 ```sql
@@ -235,6 +251,7 @@ CREATE TABLE check_outs (
 ```
 
 ### 15. requests_logs
+
 Logs de requisições da API.
 
 ```sql
@@ -347,6 +364,9 @@ ALTER TABLE accommodations ADD CONSTRAINT check_floor_positive CHECK (floor >= 0
 ALTER TABLE accommodation_types ADD CONSTRAINT check_capacity_positive CHECK (capacity > 0);
 ALTER TABLE accommodation_types ADD CONSTRAINT check_rooms_positive CHECK (rooms > 0);
 ALTER TABLE accommodation_types ADD CONSTRAINT check_bathrooms_positive CHECK (bathrooms >= 0);
+ALTER TABLE accommodation_types ADD CONSTRAINT check_min_occupants_positive CHECK (min_occupants > 0);
+ALTER TABLE accommodation_types ADD CONSTRAINT check_max_occupants_positive CHECK (max_occupants > 0);
+ALTER TABLE accommodation_types ADD CONSTRAINT check_max_occupants_gte_min CHECK (max_occupants >= min_occupants);
 ```
 
 ## Relacionamentos Principais
@@ -364,6 +384,7 @@ ALTER TABLE accommodation_types ADD CONSTRAINT check_bathrooms_positive CHECK (b
 ## Isolamento por Host
 
 O sistema implementa **isolamento completo por host**, garantindo que:
+
 - Um usuário do Host A não pode acessar dados do Host B
 - Um customer pode existir em múltiplos hosts (mesmo email/CPF)
 - Todos os dados são filtrados automaticamente por `host_id`
@@ -374,12 +395,14 @@ O sistema implementa **isolamento completo por host**, garantindo que:
 O sistema suporta diferentes tipos de documentos conforme a nacionalidade:
 
 ### Documentos por Região
+
 - **Brasil**: CPF, RG, CNH
 - **Mercosul**: DNI (Argentina), CI (Uruguai/Paraguai), Cédula (Chile/Colômbia)
 - **Internacional**: Passaporte, Documento Mercosul
 - **Outros**: RUC (Peru), outros documentos
 
 ### Regras de Documentação
+
 - **Documento Principal**: Cada customer deve ter exatamente um documento marcado como `is_primary = true`
 - **País Emissor**: Campo `issuing_country` para identificar o país emissor (código ISO 3 letras)
 - **Flexibilidade**: Customer pode ter múltiplos documentos de tipos diferentes
